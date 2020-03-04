@@ -8,7 +8,10 @@ class Experiment():
     Simulate an epidemic over a random graph.
     '''
 
-    def __init__(self, population:int = 10, p_partner:float = 0.5, p_infect: float = 0.02):
+    def __init__(self,
+                population:int = 100,
+                p_partner:float = 0.2,
+                p_infect: float = 0.2):
         '''
         Constructor for the Experiment class.
         Initializes world for experimentation.
@@ -53,6 +56,7 @@ class Experiment():
         partners += partners.T #makes upper triangle = lower triangle for symmetry
         return partners
 
+
     def init_infected(self, population:int):
         '''
         Initializes array of infected individuals.
@@ -70,10 +74,48 @@ class Experiment():
         infected[random.randint(0,population)] = 1
         return infected
 
+
     def count_infected(self):
         '''
         Counts the number of infected individuals.
         '''
         return np.sum(self.infected)
 
-    #def simulate_step(self):
+
+    def simulate_step(self):
+        '''
+        Simulates a single simulation time step.
+        '''
+        had_encounter = [] #track the indices of individuals who have an encounter,
+            #so as not to repeat partners when iterating through partner matrix
+        for i in range(len(self.partners)):
+            if i in had_encounter:
+                #catches case where person i already had an encounter
+                continue
+            if np.sum(self.partners[i][i+1:]) == 0:
+                #catches case where person i has zero potential partners
+                continue
+
+            potential_partners = [j+i+1 for j, x in
+                                    enumerate(self.partners[i][i+1:]) if x == 1]
+
+            if not [partner for partner in potential_partners
+                                            if partner not in had_encounter]:
+                #catches case where all of person i's potential partners have
+                #already had an encounter
+                continue
+
+            partner = random.choice(potential_partners) #randomly select a partner
+            while partner in had_encounter:
+                #if selected partner has already had an encounter, choose again
+                partner = random.choice(potential_partners)
+            had_encounter += [i, partner]
+
+            if self.infected[i] == 0:
+                #not infected, cannot infect partner
+                continue
+            else:
+                #infected, can infect partner
+                if random.random() <= self.virus.p_infect:
+                    #print('%d infects %d' %(i, partner))
+                    self.infected[partner] = 1

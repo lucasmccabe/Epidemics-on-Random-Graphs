@@ -1,10 +1,10 @@
 from experiment import Experiment
 
-test_exp = Experiment()
 
-print(test_exp.partners)
-print('\n')
+test_experiment = Experiment(population = 1000,
+                            p_adjacent = 0.2,
+                            p_infect = 0.001,
+                            t_recover = 14)
 
-for step in range(1000):
-    test_exp.simulate_step()
-    print(test_exp.count_infected())
+test_experiment.run_experiment(show_progress = True)
+test_experiment.save_experiment_results()

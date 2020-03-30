@@ -40,24 +40,30 @@ class Experiment():
         Raises:
             ValueError: if population is not >0.
             ValueError: if p_adjacent is not in [0,1].
+            ValueError: if p_infect is not in [0,1].
+            ValueError: if t_recover is not >=0.
         '''
-        if population<=0:
+        if population <= 0:
             raise ValueError('Cannot have negative or zero population.')
-        elif p_adjacent<0 or p_adjacent>1:
+        elif p_adjacent < 0 or p_adjacent > 1:
             raise ValueError('Invalid probability for p_adjacent.')
+        elif p_infect < 0 or p_infect > 1:
+            raise ValueError('Invalid probability for p_infect.')
+        elif t_recover < 0:
+            raise ValueError('Cannot have negative t_recover.')
         else:
             self.population = population
             self.p_adjacent = p_adjacent
 
-        self.adjacency = self.init_adjacency(population, p_adjacent)
-        self.virus = Virus(p_infect, t_recover)
-        self.infected = self.init_infected(population)
-        self.immune = self.init_immune(population)
-        self.time_step = 0
+            self.adjacency = self.init_adjacency(population, p_adjacent)
+            self.virus = Virus(p_infect, t_recover)
+            self.infected = self.init_infected(population)
+            self.immune = self.init_immune(population)
+            self.time_step = 0
 
-        #experiment history:
-        self.infected_history = [1]
-        self.immune_history = [0]
+            #experiment history:
+            self.infected_history = [1]
+            self.immune_history = [0]
 
 
     def init_adjacency(self, population:int, p_adjacent:float):

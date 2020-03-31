@@ -1,0 +1,9 @@
+1000
+0.5
+0.01
+14
+1000
+<bound method Experiment.calculate_ever_infected of <experiment.Experiment object at 0x000001F7036205C0>>
+0.999
+1 29 706 998 
+0 0 0 0 

@@ -2,6 +2,7 @@ import numpy as np
 import random
 from virus import Virus
 import datetime
+import math
 
 
 class Experiment():
@@ -37,6 +38,10 @@ class Experiment():
                 their connections during a time step.
                 For clarity, the expected number of nodes and infected node v
                 will infect in a given time step is given by p_infect*degree(v).
+            t_recover: the number of time steps it takes for an infected
+                individual to recover from an infection.
+                *Note: to consider the simlified scenario with no recovery or
+                    immunity, use t_recover = math.inf
         Raises:
             ValueError: if population is not >0.
             ValueError: if p_adjacent is not in [0,1].
@@ -55,10 +60,10 @@ class Experiment():
             self.population = population
             self.p_adjacent = p_adjacent
 
-            self.adjacency = self.init_adjacency(population, p_adjacent)
+            self.adjacency = self.init_adjacency()
             self.virus = Virus(p_infect, t_recover)
-            self.infected = self.init_infected(population)
-            self.immune = self.init_immune(population)
+            self.infected = self.init_infected()
+            self.immune = self.init_immune()
             self.time_step = 0
 
             #experiment history:
@@ -66,26 +71,23 @@ class Experiment():
             self.immune_history = [0]
 
 
-    def init_adjacency(self, population:int, p_adjacent:float):
+    def init_adjacency(self):
         '''
         Initializes adjacency matrix.
 
         Creates a square matrix of size population whose lower triangular
         values are drawn from a binomial distribution with probability
         p_adjacent. Matrix is then made symmetric with a zero diagonal.
-
-        Arguments:
-            population: the number of nodes to simulate.
-            p_adjacent: the probability of two nodes being connected.
-        Returns:
-            partners
         '''
-        adjacency = np.random.binomial(1, p_adjacent, (population,population))
+        adjacency = np.random.binomial(1,
+                                    self.p_adjacent,
+                                    (self.population, self.population)
+                                    )
         adjacency -= np.triu(adjacency) #makes upper triangle and diagonal zero
         adjacency += adjacency.T #makes upper triangle=lower triangle for symmetry
         return adjacency
 
-    def init_infected(self, population:int):
+    def init_infected(self):
         '''
         Initializes array describing infected nodes. At initialization, this is a
         one-dimensional array of length population with zeros everywhere except
@@ -95,29 +97,19 @@ class Experiment():
         recovery times. As such, a value of zero indicates an uninfected node,
         and a (positive) nonzero value indicates an infected node with that
         many time steps left before recovery.
-
-        Arguments:
-            population: the number of people/nodes to simulate.
-        Returns:
-            infected
         '''
-        infected = np.zeros(population)
-        infected[random.randint(0,population)] = self.virus.t_recover
+        infected = np.zeros(self.population)
+        infected[random.randint(0, self.population)] = self.virus.t_recover
         return infected
 
-    def init_immune(self, population:int):
+    def init_immune(self):
         '''
         Initializes array describing immune nodes. At initialization, this is a
         one-dimensional array of length population with zeros everywhere (at
         first, zero nodes have immunity). After an infected node recovers, they
         are designated immune and can neither catch nor pass on the virus.
-
-        Arguments:
-            population: the number of people/nodes to simulate.
-        Returns:
-            None
         '''
-        immune = np.zeros(population)
+        immune = np.zeros(self.population)
         return immune
 
     def count_infected(self):
@@ -197,6 +189,16 @@ class Experiment():
         self.time_step += 1
         return None
 
+    def calculate_ever_infected(self):
+        '''
+        Returns the total number of nodes have ever had the virus. This is
+        the sum of count(nodes who currently have the virus) and
+        count(nodes who are now immune).
+        '''
+        ever_infected = np.add(self.infected, self.immune)
+        np.place(ever_infected, ever_infected>0, 1)
+        return np.sum(ever_infected)
+
     def run_experiment(self, show_progress: bool = False):
         '''
         Runs an experiment. Experiment stops when either one of:
@@ -219,6 +221,7 @@ class Experiment():
                 print('Time step: %d:' %self.time_step)
                 print('Infected: %d' %self.count_infected())
                 print('Immune: %d' %self.count_immune())
+        print('**********')
         return None
 
     def save_experiment_results(self):
@@ -229,8 +232,9 @@ class Experiment():
             -p_adjacent
             -p_infect
             -t_recover
-            -max number infected in any time step
-            -max number immune in any time step (number immune at end)
+            -max number infected in any single time step
+            -total number infected across the experiment
+            -R_0
             -infected_history
             -immune_history
         '''
@@ -244,7 +248,7 @@ class Experiment():
                         self.virus.p_infect,
                         self.virus.t_recover,
                         max(self.infected_history),
-                        self.immune_history[-1]]:
+                        self.calculate_ever_infected()]:
                 output.write('%s\n' %param)
             for i in range(self.time_step):
                 output.write('%s ' %self.infected_history[i])

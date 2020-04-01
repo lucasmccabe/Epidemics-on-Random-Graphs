@@ -40,7 +40,7 @@ class Experiment():
                 will infect in a given time step is given by p_infect*degree(v).
             t_recover: the number of time steps it takes for an infected
                 individual to recover from an infection.
-                *Note: to consider the simlified scenario with no recovery or
+                *Note: to consider the simplified scenario with no recovery or
                     immunity, use t_recover = math.inf
         Raises:
             ValueError: if population is not >0.
@@ -99,7 +99,7 @@ class Experiment():
         many time steps left before recovery.
         '''
         infected = np.zeros(self.population)
-        infected[random.randint(0, self.population)] = self.virus.t_recover
+        infected[random.randint(0, self.population-1)] = self.virus.t_recover
         return infected
 
     def init_immune(self):

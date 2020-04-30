@@ -22,6 +22,10 @@ class Vaccine():
         Raises:
             many ValueError, should detail later
         '''
+        if rollout.lower() == 'linear':
+            #TODO: implement this
+            raise NotImplementedError
+
         if 0<=effectiveness<=1:
             self.effectiveness = effectiveness
         else:

@@ -19,9 +19,9 @@ class Virus():
         if 0<=p_infect<=1:
             self.p_infect = p_infect
         else:
-            raise ValueError('Invalid probability for p_infect.')
+            raise ValueError('p_infect must be between 0 and 1.')
 
         if 0<=t_recover:
             self.t_recover = t_recover
         else:
-            raise ValueError('Invalid time for t_recover.')
+            raise ValueError('t_recover must be at least 0.')

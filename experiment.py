@@ -1,9 +1,10 @@
 import numpy as np
 import random
-from virus import Virus
 import datetime
 import math
-
+import copy
+from virus import Virus
+from vaccine import Vaccine
 
 class Experiment():
     '''
@@ -21,10 +22,16 @@ class Experiment():
     '''
 
     def __init__(self,
-                population:int = 100,
-                p_adjacent:float = 0.1,
-                p_infect: float = 0.1,
-                t_recover: float = 1):
+                population: int = 100,
+                p_adjacent: float = 0.1,
+                virus: object = Virus(p_infect = 0.1,
+                                        t_recover = 1),
+                vaccine: object = Vaccine(effectiveness = 0.5,
+                                            rollout = 'immediate',
+                                            prevalence = 0,
+                                            delay = 0,
+                                            rate = 0)
+                ):
         '''
         Constructor for the Experiment class. Initializes world for
         experimentation.
@@ -45,26 +52,21 @@ class Experiment():
         Raises:
             ValueError: if population is not >0.
             ValueError: if p_adjacent is not in [0,1].
-            ValueError: if p_infect is not in [0,1].
-            ValueError: if t_recover is not >=0.
         '''
         if population <= 0:
             raise ValueError('Cannot have negative or zero population.')
         elif p_adjacent < 0 or p_adjacent > 1:
             raise ValueError('Invalid probability for p_adjacent.')
-        elif p_infect < 0 or p_infect > 1:
-            raise ValueError('Invalid probability for p_infect.')
-        elif t_recover < 0:
-            raise ValueError('Cannot have negative t_recover.')
         else:
             self.population = population
             self.p_adjacent = p_adjacent
-
+            self.virus = virus
+            self.vaccine = vaccine
             self.adjacency = self.init_adjacency()
-            self.virus = Virus(p_infect, t_recover)
             self.infected = self.init_infected()
             self.immune = self.init_immune()
-            self.time_step = 0
+            self.vaccinated = self.init_vaccinated()
+            self.time_step = 1
 
             #experiment history:
             self.infected_history = [1]
@@ -112,6 +114,16 @@ class Experiment():
         immune = np.zeros(self.population)
         return immune
 
+    def init_vaccinated(self):
+        '''
+        Initializes array describing vaccinated nodes. This is used to track
+        vaccine rollout.
+        '''
+        vaccinated = np.zeros(self.population)
+        vaccinated[:int(self.vaccine.prevalence*self.population)] = 1
+        np.random.shuffle(vaccinated)
+        return vaccinated
+
     def count_infected(self):
         '''
         Returns the number of infected individuals.
@@ -131,21 +143,36 @@ class Experiment():
         expected number of nodes and infected node v will infect in a given time
         step is given by p_infect*degree(v).
         '''
+        new_infected = copy.deepcopy(self.infected)
+        newly_infected = 0
+        print('Infection count:', self.count_infected())
+        print(self.infected)
         for i in range(self.population):
-            if self.infected[i] == 0:
+            if self.infected[i] == 0 or np.sum(self.adjacency[i]) == 0:
                 #virus cannot be spread from a node without the virus
-                continue
-            if np.sum(self.adjacency[i]) == 0:
-                #catches case where node i has zero connections
+                #also catches case where node i has zero connections
                 continue
             for j in range(self.population): #iterates adjacency row for node i
                 if (self.adjacency[i][j] == 1 and
                     random.random()<=self.virus.p_infect and
-                    self.infected[j] == 0 and
-                    self.immune[j] != 1):
-                    #if node j is not already infected and node j is
-                    #not immune, the virus spreads from node i to node j
-                    self.infected[j] = self.virus.t_recover
+                    self.infected[j] == 0):
+                    #contact with an infected node occurs, opening the
+                    #POSSIBILITY of transmission
+                    if self.immune[j] == 1:
+                        #transmission avoided with probability 1 in the case of
+                        #(naturally) immune recipient (e.g. recovered)
+                        continue
+                    if (self.vaccinated[j] == 1 and
+                        random.random()<=self.vaccine.effectiveness):
+                        #transmission is avoided with probability
+                        #self.vaccine.effectiveness in the case of
+                        #vaccinated recipient
+                        continue
+                    new_infected[j] = self.virus.t_recover
+                    newly_infected += 1
+        self.infected = new_infected
+        #print('Newly infected: ', done_prop)
+        #print(self.count_infected())
         return None
 
     def update_immune(self):
@@ -180,7 +207,7 @@ class Experiment():
         2. Newly-recovered nodes become immune.
         3. Virus is propagated by infected nodes.
         '''
-        if self.time_step != 0:
+        if self.time_step != 1:
             self.update_immune() #handles event 1
             self.update_infected() #handles event 2
         self.propagate_virus() #handles event 3

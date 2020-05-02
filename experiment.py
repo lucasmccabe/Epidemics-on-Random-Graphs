@@ -67,6 +67,7 @@ class Experiment():
             self.immune = self.init_immune()
             self.vaccinated = self.init_vaccinated()
             self.time_step = 1
+            self.newly_infected = 0
 
             #experiment history:
             self.infected_history = [1]
@@ -119,9 +120,13 @@ class Experiment():
         Initializes array describing vaccinated nodes. This is used to track
         vaccine rollout.
         '''
-        vaccinated = np.zeros(self.population)
-        vaccinated[:int(self.vaccine.prevalence*self.population)] = 1
-        np.random.shuffle(vaccinated)
+        if self.vaccine.rollout == 'immediate':
+            vaccinated = np.zeros(self.population)
+            vaccinated[:int(self.vaccine.prevalence*self.population)] = 1
+            np.random.shuffle(vaccinated)
+        if self.vaccine.rollout == 'linear':
+            raise NotImplementedError
+
         return vaccinated
 
     def count_infected(self):
@@ -132,9 +137,15 @@ class Experiment():
 
     def count_immune(self):
         '''
-        Returns the number of immune individuals.
+        Returns the number of recovered/naturally immune individuals.
         '''
         return np.count_nonzero(self.immune)
+
+    def count_vaccinated(self):
+        '''
+        Returns the number of vaccinated individuals.
+        '''
+        return np.count_nonzero(self.vaccinated)
 
     def propagate_virus(self):
         '''
@@ -143,10 +154,10 @@ class Experiment():
         expected number of nodes and infected node v will infect in a given time
         step is given by p_infect*degree(v).
         '''
-        new_infected = copy.deepcopy(self.infected)
-        newly_infected = 0
-        print('Infection count:', self.count_infected())
-        print(self.infected)
+        updated_infected = copy.deepcopy(self.infected)
+        self.newly_infected = 0
+        #print('Infection count:', self.count_infected())
+        #print(self.infected)
         for i in range(self.population):
             if self.infected[i] == 0 or np.sum(self.adjacency[i]) == 0:
                 #virus cannot be spread from a node without the virus
@@ -168,9 +179,9 @@ class Experiment():
                         #self.vaccine.effectiveness in the case of
                         #vaccinated recipient
                         continue
-                    new_infected[j] = self.virus.t_recover
-                    newly_infected += 1
-        self.infected = new_infected
+                    updated_infected[j] = self.virus.t_recover
+                    self.newly_infected += 1
+        self.infected = updated_infected
         #print('Newly infected: ', done_prop)
         #print(self.count_infected())
         return None
@@ -246,8 +257,10 @@ class Experiment():
             if show_progress:
                 print('**********')
                 print('Time step: %d:' %self.time_step)
-                print('Infected: %d' %self.count_infected())
-                print('Immune: %d' %self.count_immune())
+                print('Newly Infected: %d' %self.newly_infected)
+                print('Total Infected: %d' %self.count_infected())
+                print('Total Vaccinated: %d' %self.count_vaccinated())
+                print('Total Recovered/Immune: %d' %self.count_immune())
         print('**********')
         return None
 
@@ -261,7 +274,6 @@ class Experiment():
             -t_recover
             -max number infected in any single time step
             -total number infected across the experiment
-            -R_0
             -infected_history
             -immune_history
         '''

@@ -22,10 +22,6 @@ class Vaccine():
         Raises:
             many ValueError, should detail later
         '''
-        if rollout.lower() == 'linear':
-            #TODO: implement this
-            raise NotImplementedError
-
         if 0<=effectiveness<=1:
             self.effectiveness = effectiveness
         else:
@@ -51,5 +47,5 @@ class Vaccine():
         else:
             raise ValueError('rate must be between 0 and 1.')
 
-        if rollout == 'linear' and prevalence != 0:
+        if self.rollout == 'linear' and prevalence != 0:
             raise ValueError('prevalence must start at 0 with variable rollout.')

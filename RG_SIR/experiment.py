@@ -3,8 +3,8 @@ import random
 import datetime
 import math
 import copy
-from virus import Virus
-from vaccine import Vaccine
+from RG_SIR.virus import Virus
+from RG_SIR.vaccine import Vaccine
 
 class Experiment():
     '''

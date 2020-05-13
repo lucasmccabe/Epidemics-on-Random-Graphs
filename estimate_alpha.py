@@ -26,12 +26,12 @@ Simulated outbreak with alpha = 0.554688
 Estimated endemic steady state lower bound for alpha: 0.554688.
 """
 
-from experiment import Experiment
-from virus import Virus
-from vaccine import Vaccine
+from RG_SIR.experiment import Experiment
+from RG_SIR.virus import Virus
+from RG_SIR.vaccine import Vaccine
 
 #ADJUST PARAMS HERE-----
-population = 2000
+population = 1000
 p_adjacent = 0.1
 p_infect = 0.35
 t_recover = 4

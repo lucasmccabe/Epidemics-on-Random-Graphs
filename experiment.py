@@ -8,7 +8,7 @@ from vaccine import Vaccine
 
 class Experiment():
     '''
-    Simulates a virus spreading over a classical random graph.
+    Simulates an SIR disease model spreading over a classical random graph.
 
     General framework:
         -Begin with a classical random graph G(population, p_adjacent), with one

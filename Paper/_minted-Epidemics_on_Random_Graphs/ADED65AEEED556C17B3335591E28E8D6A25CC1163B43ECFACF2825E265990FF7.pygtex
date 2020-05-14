@@ -1,0 +1,329 @@
+\begin{Verbatim}[commandchars=\\\{\},codes={\catcode`\$=3\catcode`\^=7\catcode`\_=8}]
+\PYG{k+kn}{import} \PYG{n+nn}{numpy} \PYG{k+kn}{as} \PYG{n+nn}{np}
+\PYG{k+kn}{import} \PYG{n+nn}{random}
+\PYG{k+kn}{import} \PYG{n+nn}{datetime}
+\PYG{k+kn}{import} \PYG{n+nn}{math}
+\PYG{k+kn}{import} \PYG{n+nn}{copy}
+\PYG{k+kn}{from} \PYG{n+nn}{RG\PYGZus{}SIR.virus} \PYG{k+kn}{import} \PYG{n}{Virus}
+\PYG{k+kn}{from} \PYG{n+nn}{RG\PYGZus{}SIR.vaccine} \PYG{k+kn}{import} \PYG{n}{Vaccine}
+
+\PYG{k}{class} \PYG{n+nc}{Experiment}\PYG{p}{():}
+    \PYG{l+s+sd}{\PYGZsq{}\PYGZsq{}\PYGZsq{}}
+\PYG{l+s+sd}{    Simulates an SIR disease model spreading over a classical random graph.}
+
+\PYG{l+s+sd}{    General framework:}
+\PYG{l+s+sd}{        \PYGZhy{}Begin with a classical random graph G(population, p\PYGZus{}adjacent), with one}
+\PYG{l+s+sd}{        node having a Virus(p\PYGZus{}infect, t\PYGZus{}recover).}
+\PYG{l+s+sd}{        \PYGZhy{}During a time step, each infected node spreads the virus to each}
+\PYG{l+s+sd}{        of its connected nodes with probability p\PYGZus{}infect. For clarity, the}
+\PYG{l+s+sd}{        expected number of nodes and infected node v will infect in a given time}
+\PYG{l+s+sd}{        step is given by p\PYGZus{}infect*degree(v).}
+\PYG{l+s+sd}{        \PYGZhy{}At each time step, each infected node recovers with probability}
+\PYG{l+s+sd}{        self.virus.p\PYGZus{}recover, which is set to the maximum likelihood estimate}
+\PYG{l+s+sd}{        of a parameter p for a geometric random variable whereby}
+\PYG{l+s+sd}{        E[Geo(p)] = self.t\PYGZus{}recover.}
+\PYG{l+s+sd}{    \PYGZsq{}\PYGZsq{}\PYGZsq{}}
+
+    \PYG{k}{def} \PYG{n+nf+fm}{\PYGZus{}\PYGZus{}init\PYGZus{}\PYGZus{}}\PYG{p}{(}\PYG{n+nb+bp}{self}\PYG{p}{,}
+                \PYG{n}{population}\PYG{p}{:} \PYG{n+nb}{int} \PYG{o}{=} \PYG{l+m+mi}{100}\PYG{p}{,}
+                \PYG{n}{p\PYGZus{}adjacent}\PYG{p}{:} \PYG{n+nb}{float} \PYG{o}{=} \PYG{l+m+mf}{0.1}\PYG{p}{,}
+                \PYG{n}{virus}\PYG{p}{:} \PYG{n+nb}{object} \PYG{o}{=} \PYG{n}{Virus}\PYG{p}{(}\PYG{n}{p\PYGZus{}infect} \PYG{o}{=} \PYG{l+m+mf}{0.1}\PYG{p}{,}
+                                        \PYG{n}{t\PYGZus{}recover} \PYG{o}{=} \PYG{l+m+mi}{1}\PYG{p}{),}
+                \PYG{n}{vaccine}\PYG{p}{:} \PYG{n+nb}{object} \PYG{o}{=} \PYG{n}{Vaccine}\PYG{p}{(}\PYG{n}{effectiveness} \PYG{o}{=} \PYG{l+m+mf}{0.5}\PYG{p}{,}
+                                            \PYG{n}{rollout} \PYG{o}{=} \PYG{l+s+s1}{\PYGZsq{}immediate\PYGZsq{}}\PYG{p}{,}
+                                            \PYG{n}{prevalence} \PYG{o}{=} \PYG{l+m+mi}{0}\PYG{p}{,}
+                                            \PYG{n}{delay} \PYG{o}{=} \PYG{l+m+mi}{0}\PYG{p}{,}
+                                            \PYG{n}{rate} \PYG{o}{=} \PYG{l+m+mi}{0}\PYG{p}{),}
+                \PYG{n}{max\PYGZus{}threshold}\PYG{p}{:} \PYG{n+nb}{float} \PYG{o}{=} \PYG{l+m+mf}{1.0}
+                \PYG{p}{):}
+        \PYG{l+s+sd}{\PYGZsq{}\PYGZsq{}\PYGZsq{}}
+\PYG{l+s+sd}{        Constructor for the Experiment class. Initializes world for}
+\PYG{l+s+sd}{        experimentation.}
+
+\PYG{l+s+sd}{        Arguments:}
+\PYG{l+s+sd}{            population: the number of nodes to simulate.}
+\PYG{l+s+sd}{                Corresponds to the n in G(n,p).}
+\PYG{l+s+sd}{            p\PYGZus{}adjacent: the probability of two nodes being connected.}
+\PYG{l+s+sd}{                Corresponds to the p in G(n,p).}
+\PYG{l+s+sd}{            p\PYGZus{}infect: probability that an infected person will infect each of}
+\PYG{l+s+sd}{                their connections during a time step.}
+\PYG{l+s+sd}{                For clarity, the expected number of nodes and infected node v}
+\PYG{l+s+sd}{                will infect in a given time step is given by p\PYGZus{}infect*degree(v).}
+\PYG{l+s+sd}{            t\PYGZus{}recover: the average number of time steps it takes for an infected}
+\PYG{l+s+sd}{                individual to recover from an infection.}
+\PYG{l+s+sd}{            max\PYGZus{}threshold: the simulation halts if at least this fraction of}
+\PYG{l+s+sd}{                the population becomes infected.}
+\PYG{l+s+sd}{        Raises:}
+\PYG{l+s+sd}{            ValueError: if population is not \PYGZgt{}0.}
+\PYG{l+s+sd}{            ValueError: if p\PYGZus{}adjacent is not in [0,1].}
+\PYG{l+s+sd}{        \PYGZsq{}\PYGZsq{}\PYGZsq{}}
+        \PYG{k}{if} \PYG{n}{population} \PYG{o}{\PYGZlt{}=} \PYG{l+m+mi}{0}\PYG{p}{:}
+            \PYG{k}{raise} \PYG{n+ne}{ValueError}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}Cannot have negative or zero population.\PYGZsq{}}\PYG{p}{)}
+        \PYG{k}{elif} \PYG{n}{max\PYGZus{}threshold} \PYG{o}{\PYGZlt{}} \PYG{l+m+mi}{0} \PYG{o+ow}{or} \PYG{n}{max\PYGZus{}threshold} \PYG{o}{\PYGZgt{}} \PYG{l+m+mi}{1}\PYG{p}{:}
+            \PYG{k}{raise} \PYG{n+ne}{ValueError}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}max\PYGZus{}threshold must be between 0 and 1.\PYGZsq{}}\PYG{p}{)}
+        \PYG{k}{elif} \PYG{n}{p\PYGZus{}adjacent} \PYG{o}{\PYGZlt{}} \PYG{l+m+mi}{0} \PYG{o+ow}{or} \PYG{n}{p\PYGZus{}adjacent} \PYG{o}{\PYGZgt{}} \PYG{l+m+mi}{1}\PYG{p}{:}
+            \PYG{k}{raise} \PYG{n+ne}{ValueError}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}Invalid probability for p\PYGZus{}adjacent.\PYGZsq{}}\PYG{p}{)}
+        \PYG{k}{else}\PYG{p}{:}
+            \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{population} \PYG{o}{=} \PYG{n}{population}
+            \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{p\PYGZus{}adjacent} \PYG{o}{=} \PYG{n}{p\PYGZus{}adjacent}
+            \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{virus} \PYG{o}{=} \PYG{n}{virus}
+            \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{vaccine} \PYG{o}{=} \PYG{n}{vaccine}
+            \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{adjacency} \PYG{o}{=} \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{init\PYGZus{}adjacency}\PYG{p}{()}
+            \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{infected} \PYG{o}{=} \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{init\PYGZus{}infected}\PYG{p}{()}
+            \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{immune} \PYG{o}{=} \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{init\PYGZus{}immune}\PYG{p}{()}
+            \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{vaccinated} \PYG{o}{=} \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{init\PYGZus{}vaccinated}\PYG{p}{()}
+            \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{time\PYGZus{}step} \PYG{o}{=} \PYG{l+m+mi}{0}
+            \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{newly\PYGZus{}infected} \PYG{o}{=} \PYG{l+m+mi}{1}
+            \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{max\PYGZus{}threshold} \PYG{o}{=} \PYG{n}{max\PYGZus{}threshold}
+
+            \PYG{c+c1}{\PYGZsh{}experiment history:}
+            \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{infected\PYGZus{}history} \PYG{o}{=} \PYG{p}{[}\PYG{l+m+mi}{1}\PYG{p}{]}
+            \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{immune\PYGZus{}history} \PYG{o}{=} \PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{]}
+
+
+    \PYG{k}{def} \PYG{n+nf}{init\PYGZus{}adjacency}\PYG{p}{(}\PYG{n+nb+bp}{self}\PYG{p}{):}
+        \PYG{l+s+sd}{\PYGZsq{}\PYGZsq{}\PYGZsq{}}
+\PYG{l+s+sd}{        Initializes adjacency matrix.}
+
+\PYG{l+s+sd}{        Creates a square matrix of size population whose lower triangular}
+\PYG{l+s+sd}{        values are drawn from a binomial distribution with probability}
+\PYG{l+s+sd}{        p\PYGZus{}adjacent. Matrix is then made symmetric with a zero diagonal.}
+\PYG{l+s+sd}{        \PYGZsq{}\PYGZsq{}\PYGZsq{}}
+        \PYG{n}{adjacency} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{random}\PYG{o}{.}\PYG{n}{binomial}\PYG{p}{(}\PYG{l+m+mi}{1}\PYG{p}{,}
+                                    \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{p\PYGZus{}adjacent}\PYG{p}{,}
+                                    \PYG{p}{(}\PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{population}\PYG{p}{,} \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{population}\PYG{p}{)}
+                                    \PYG{p}{)}
+        \PYG{n}{adjacency} \PYG{o}{\PYGZhy{}=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{triu}\PYG{p}{(}\PYG{n}{adjacency}\PYG{p}{)} \PYG{c+c1}{\PYGZsh{}makes upper triangle and diagonal zero}
+        \PYG{n}{adjacency} \PYG{o}{+=} \PYG{n}{adjacency}\PYG{o}{.}\PYG{n}{T} \PYG{c+c1}{\PYGZsh{}makes upper triangle=lower triangle for symmetry}
+        \PYG{k}{return} \PYG{n}{adjacency}
+
+    \PYG{k}{def} \PYG{n+nf}{init\PYGZus{}infected}\PYG{p}{(}\PYG{n+nb+bp}{self}\PYG{p}{):}
+        \PYG{l+s+sd}{\PYGZsq{}\PYGZsq{}\PYGZsq{}}
+\PYG{l+s+sd}{        Initializes array describing infected nodes. At initialization, this is a}
+\PYG{l+s+sd}{        one\PYGZhy{}dimensional array of length population with zeros everywhere except}
+\PYG{l+s+sd}{        at one node (one infected node in the population).}
+
+\PYG{l+s+sd}{        A value of zero indicates an uninfected node, and nonzero value}
+\PYG{l+s+sd}{        indicates an infected node.}
+\PYG{l+s+sd}{        \PYGZsq{}\PYGZsq{}\PYGZsq{}}
+        \PYG{n}{infected} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{zeros}\PYG{p}{(}\PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{population}\PYG{p}{)}
+        \PYG{n}{infected}\PYG{p}{[}\PYG{n}{random}\PYG{o}{.}\PYG{n}{randint}\PYG{p}{(}\PYG{l+m+mi}{0}\PYG{p}{,} \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{population}\PYG{o}{\PYGZhy{}}\PYG{l+m+mi}{1}\PYG{p}{)]} \PYG{o}{=} \PYG{l+m+mi}{1}
+        \PYG{k}{return} \PYG{n}{infected}
+
+    \PYG{k}{def} \PYG{n+nf}{init\PYGZus{}immune}\PYG{p}{(}\PYG{n+nb+bp}{self}\PYG{p}{):}
+        \PYG{l+s+sd}{\PYGZsq{}\PYGZsq{}\PYGZsq{}}
+\PYG{l+s+sd}{        Initializes array describing immune nodes. At initialization, this is a}
+\PYG{l+s+sd}{        one\PYGZhy{}dimensional array of length population with zeros everywhere (at}
+\PYG{l+s+sd}{        first, zero nodes have immunity). After an infected node recovers, they}
+\PYG{l+s+sd}{        are designated immune and can neither catch nor pass on the virus.}
+\PYG{l+s+sd}{        \PYGZsq{}\PYGZsq{}\PYGZsq{}}
+        \PYG{n}{immune} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{zeros}\PYG{p}{(}\PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{population}\PYG{p}{)}
+        \PYG{k}{return} \PYG{n}{immune}
+
+    \PYG{k}{def} \PYG{n+nf}{init\PYGZus{}vaccinated}\PYG{p}{(}\PYG{n+nb+bp}{self}\PYG{p}{):}
+        \PYG{l+s+sd}{\PYGZsq{}\PYGZsq{}\PYGZsq{}}
+\PYG{l+s+sd}{        Initializes array describing vaccinated nodes. This is used to track}
+\PYG{l+s+sd}{        vaccine rollout.}
+\PYG{l+s+sd}{        \PYGZsq{}\PYGZsq{}\PYGZsq{}}
+        \PYG{k}{if} \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{vaccine}\PYG{o}{.}\PYG{n}{rollout} \PYG{o}{==} \PYG{l+s+s1}{\PYGZsq{}immediate\PYGZsq{}}\PYG{p}{:}
+            \PYG{c+c1}{\PYGZsh{}a fraction self.vaccine.prevalence of all nodes are randomly}
+            \PYG{c+c1}{\PYGZsh{}selected to receive the vaccine}
+            \PYG{n}{vaccinated} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{zeros}\PYG{p}{(}\PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{population}\PYG{p}{)}
+            \PYG{n}{vaccinated}\PYG{p}{[:}\PYG{n+nb}{int}\PYG{p}{(}\PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{vaccine}\PYG{o}{.}\PYG{n}{prevalence}\PYG{o}{*}\PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{population}\PYG{p}{)]} \PYG{o}{=} \PYG{l+m+mi}{1}
+            \PYG{n}{np}\PYG{o}{.}\PYG{n}{random}\PYG{o}{.}\PYG{n}{shuffle}\PYG{p}{(}\PYG{n}{vaccinated}\PYG{p}{)}
+        \PYG{k}{if} \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{vaccine}\PYG{o}{.}\PYG{n}{rollout} \PYG{o}{==} \PYG{l+s+s1}{\PYGZsq{}linear\PYGZsq{}}\PYG{p}{:}
+            \PYG{c+c1}{\PYGZsh{}if the rollout is linear, the initial vaccine prevalence is zero}
+            \PYG{n}{vaccinated} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{zeros}\PYG{p}{(}\PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{population}\PYG{p}{)}
+
+        \PYG{k}{return} \PYG{n}{vaccinated}
+
+    \PYG{k}{def} \PYG{n+nf}{count\PYGZus{}infected}\PYG{p}{(}\PYG{n+nb+bp}{self}\PYG{p}{):}
+        \PYG{l+s+sd}{\PYGZsq{}\PYGZsq{}\PYGZsq{}}
+\PYG{l+s+sd}{        Returns the number of infected individuals.}
+\PYG{l+s+sd}{        \PYGZsq{}\PYGZsq{}\PYGZsq{}}
+        \PYG{k}{return} \PYG{n}{np}\PYG{o}{.}\PYG{n}{count\PYGZus{}nonzero}\PYG{p}{(}\PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{infected}\PYG{p}{)}
+
+    \PYG{k}{def} \PYG{n+nf}{count\PYGZus{}immune}\PYG{p}{(}\PYG{n+nb+bp}{self}\PYG{p}{):}
+        \PYG{l+s+sd}{\PYGZsq{}\PYGZsq{}\PYGZsq{}}
+\PYG{l+s+sd}{        Returns the number of recovered/naturally immune individuals.}
+\PYG{l+s+sd}{        \PYGZsq{}\PYGZsq{}\PYGZsq{}}
+        \PYG{k}{return} \PYG{n}{np}\PYG{o}{.}\PYG{n}{count\PYGZus{}nonzero}\PYG{p}{(}\PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{immune}\PYG{p}{)}
+
+    \PYG{k}{def} \PYG{n+nf}{count\PYGZus{}vaccinated}\PYG{p}{(}\PYG{n+nb+bp}{self}\PYG{p}{):}
+        \PYG{l+s+sd}{\PYGZsq{}\PYGZsq{}\PYGZsq{}}
+\PYG{l+s+sd}{        Returns the number of vaccinated individuals.}
+\PYG{l+s+sd}{        \PYGZsq{}\PYGZsq{}\PYGZsq{}}
+        \PYG{k}{return} \PYG{n}{np}\PYG{o}{.}\PYG{n}{count\PYGZus{}nonzero}\PYG{p}{(}\PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{vaccinated}\PYG{p}{)}
+
+    \PYG{k}{def} \PYG{n+nf}{propagate\PYGZus{}virus}\PYG{p}{(}\PYG{n+nb+bp}{self}\PYG{p}{):}
+        \PYG{l+s+sd}{\PYGZsq{}\PYGZsq{}\PYGZsq{}}
+\PYG{l+s+sd}{        Each infected node spreads the virus to each}
+\PYG{l+s+sd}{        of its connected nodes with probability p\PYGZus{}infect. For clarity, the}
+\PYG{l+s+sd}{        expected number of nodes and infected node v will infect in a given time}
+\PYG{l+s+sd}{        step is given by p\PYGZus{}infect*degree(v).}
+\PYG{l+s+sd}{        \PYGZsq{}\PYGZsq{}\PYGZsq{}}
+        \PYG{n}{updated\PYGZus{}infected} \PYG{o}{=} \PYG{n}{copy}\PYG{o}{.}\PYG{n}{deepcopy}\PYG{p}{(}\PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{infected}\PYG{p}{)}
+
+        \PYG{k}{for} \PYG{n}{i} \PYG{o+ow}{in} \PYG{n+nb}{range}\PYG{p}{(}\PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{population}\PYG{p}{):}
+            \PYG{k}{if} \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{infected}\PYG{p}{[}\PYG{n}{i}\PYG{p}{]} \PYG{o}{==} \PYG{l+m+mi}{1}\PYG{p}{:}
+                \PYG{c+c1}{\PYGZsh{}virus can only be spread from infected node}
+                \PYG{k}{for} \PYG{n}{j} \PYG{o+ow}{in} \PYG{n+nb}{range}\PYG{p}{(}\PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{population}\PYG{p}{):}
+                    \PYG{c+c1}{\PYGZsh{}iterates adjacency row for node i}
+                    \PYG{k}{if} \PYG{p}{(}\PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{adjacency}\PYG{p}{[}\PYG{n}{i}\PYG{p}{][}\PYG{n}{j}\PYG{p}{]} \PYG{o}{==} \PYG{l+m+mi}{1} \PYG{o+ow}{and}
+                        \PYG{n}{random}\PYG{o}{.}\PYG{n}{random}\PYG{p}{()}\PYG{o}{\PYGZlt{}=}\PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{virus}\PYG{o}{.}\PYG{n}{p\PYGZus{}infect} \PYG{o+ow}{and}
+                        \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{infected}\PYG{p}{[}\PYG{n}{j}\PYG{p}{]} \PYG{o}{==} \PYG{l+m+mi}{0} \PYG{o+ow}{and}
+                        \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{immune}\PYG{p}{[}\PYG{n}{j}\PYG{p}{]} \PYG{o}{==} \PYG{l+m+mi}{0}\PYG{p}{):}
+                        \PYG{c+c1}{\PYGZsh{}contact with an infected node occurs, opening the}
+                        \PYG{c+c1}{\PYGZsh{}POSSIBILITY of transmission}
+                        \PYG{c+c1}{\PYGZsh{}transmission cannot occur when potential recipient is}
+                        \PYG{c+c1}{\PYGZsh{}(naturally) immune (e.g. recovered)}
+                        \PYG{k}{if} \PYG{p}{(}\PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{vaccinated}\PYG{p}{[}\PYG{n}{j}\PYG{p}{]} \PYG{o}{==} \PYG{l+m+mi}{1} \PYG{o+ow}{and}
+                            \PYG{n}{random}\PYG{o}{.}\PYG{n}{random}\PYG{p}{()}\PYG{o}{\PYGZlt{}=}\PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{vaccine}\PYG{o}{.}\PYG{n}{effectiveness}\PYG{p}{):}
+                            \PYG{c+c1}{\PYGZsh{}transmission is avoided with probability}
+                            \PYG{c+c1}{\PYGZsh{}self.vaccine.effectiveness in the case of}
+                            \PYG{c+c1}{\PYGZsh{}vaccinated recipient}
+                            \PYG{k}{continue}
+                        \PYG{n}{updated\PYGZus{}infected}\PYG{p}{[}\PYG{n}{j}\PYG{p}{]} \PYG{o}{=} \PYG{l+m+mi}{1}
+        \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{newly\PYGZus{}infected} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{sum}\PYG{p}{(}\PYG{n}{updated\PYGZus{}infected} \PYG{o}{\PYGZhy{}} \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{infected}\PYG{p}{)}
+        \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{infected} \PYG{o}{=} \PYG{n}{updated\PYGZus{}infected}
+
+        \PYG{k}{return} \PYG{n+nb+bp}{None}
+
+    \PYG{k}{def} \PYG{n+nf}{update\PYGZus{}infected}\PYG{p}{(}\PYG{n+nb+bp}{self}\PYG{p}{):}
+        \PYG{l+s+sd}{\PYGZsq{}\PYGZsq{}\PYGZsq{}}
+\PYG{l+s+sd}{        Each infected node recovers with probability self.virus.p\PYGZus{}recover.}
+\PYG{l+s+sd}{        \PYGZsq{}\PYGZsq{}\PYGZsq{}}
+        \PYG{k}{for} \PYG{n}{i} \PYG{o+ow}{in} \PYG{n}{np}\PYG{o}{.}\PYG{n}{where}\PYG{p}{(}\PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{infected} \PYG{o}{==} \PYG{l+m+mi}{1}\PYG{p}{)[}\PYG{l+m+mi}{0}\PYG{p}{]:}
+            \PYG{k}{if} \PYG{n}{random}\PYG{o}{.}\PYG{n}{random}\PYG{p}{()} \PYG{o}{\PYGZlt{}=} \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{virus}\PYG{o}{.}\PYG{n}{p\PYGZus{}recover}\PYG{p}{:}
+                \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{infected}\PYG{p}{[}\PYG{n}{i}\PYG{p}{]} \PYG{o}{=} \PYG{l+m+mi}{0}
+                \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{immune}\PYG{p}{[}\PYG{n}{i}\PYG{p}{]} \PYG{o}{=} \PYG{l+m+mi}{1}
+        \PYG{k}{return} \PYG{n+nb+bp}{None}
+
+    \PYG{k}{def} \PYG{n+nf}{update\PYGZus{}vaccinated}\PYG{p}{(}\PYG{n+nb+bp}{self}\PYG{p}{):}
+        \PYG{l+s+sd}{\PYGZsq{}\PYGZsq{}\PYGZsq{}}
+
+\PYG{l+s+sd}{        Raises:}
+\PYG{l+s+sd}{            NotImplementedError for unimplemented rollouts. Shouldn\PYGZsq{}t really}
+\PYG{l+s+sd}{                happen.}
+\PYG{l+s+sd}{        \PYGZsq{}\PYGZsq{}\PYGZsq{}}
+        \PYG{k}{if} \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{vaccine}\PYG{o}{.}\PYG{n}{rollout} \PYG{o}{==} \PYG{l+s+s1}{\PYGZsq{}immediate\PYGZsq{}}\PYG{p}{:}
+            \PYG{k}{return} \PYG{n+nb+bp}{None}
+        \PYG{k}{if} \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{vaccine}\PYG{o}{.}\PYG{n}{rollout} \PYG{o}{==} \PYG{l+s+s1}{\PYGZsq{}linear\PYGZsq{}}\PYG{p}{:}
+            \PYG{k}{if} \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{time\PYGZus{}step} \PYG{o}{\PYGZgt{}=} \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{vaccine}\PYG{o}{.}\PYG{n}{delay}\PYG{p}{:}
+                \PYG{c+c1}{\PYGZsh{}self.vaccine.rate*self.population is the number of new nodes}
+                \PYG{c+c1}{\PYGZsh{}that become vaccinated each time step.}
+                \PYG{k}{if} \PYG{n+nb}{len}\PYG{p}{(}\PYG{n}{np}\PYG{o}{.}\PYG{n}{where}\PYG{p}{(}\PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{vaccinated} \PYG{o}{==} \PYG{l+m+mi}{0}\PYG{p}{)[}\PYG{l+m+mi}{0}\PYG{p}{])} \PYG{o}{\PYGZlt{}=} \PYGZbs{}
+                                            \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{vaccine}\PYG{o}{.}\PYG{n}{rate}\PYG{o}{*}\PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{population}\PYG{p}{:}
+                    \PYG{c+c1}{\PYGZsh{}If there are fewer than self.vaccine.rate*self.population}
+                    \PYG{c+c1}{\PYGZsh{}unvaccinated nodes remaining, all nodes become vaccinated.}
+                    \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{vaccinated} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{ones}\PYG{p}{(}\PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{population}\PYG{p}{)}
+                \PYG{k}{else}\PYG{p}{:}
+                    \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{vaccinated}\PYG{p}{[}\PYG{n}{random}\PYG{o}{.}\PYG{n}{sample}\PYG{p}{(}
+                                    \PYG{n+nb}{list}\PYG{p}{(}\PYG{n}{np}\PYG{o}{.}\PYG{n}{where}\PYG{p}{(}\PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{vaccinated} \PYG{o}{==} \PYG{l+m+mi}{0}\PYG{p}{)[}\PYG{l+m+mi}{0}\PYG{p}{]),}
+                                    \PYG{n+nb}{int}\PYG{p}{(}\PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{vaccine}\PYG{o}{.}\PYG{n}{rate}\PYG{o}{*}\PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{population}\PYG{p}{))]} \PYG{o}{=} \PYG{l+m+mi}{1}
+        \PYG{k}{else}\PYG{p}{:}
+            \PYG{k}{raise} \PYG{n+ne}{NotImplementedError}
+
+    \PYG{k}{def} \PYG{n+nf}{update\PYGZus{}history}\PYG{p}{(}\PYG{n+nb+bp}{self}\PYG{p}{):}
+        \PYG{l+s+sd}{\PYGZsq{}\PYGZsq{}\PYGZsq{}}
+\PYG{l+s+sd}{        Updates experiment history for tracking.}
+\PYG{l+s+sd}{        \PYGZsq{}\PYGZsq{}\PYGZsq{}}
+        \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{infected\PYGZus{}history}\PYG{o}{.}\PYG{n}{append}\PYG{p}{(}\PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{count\PYGZus{}infected}\PYG{p}{())}
+        \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{immune\PYGZus{}history}\PYG{o}{.}\PYG{n}{append}\PYG{p}{(}\PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{count\PYGZus{}immune}\PYG{p}{())}
+        \PYG{k}{return} \PYG{n+nb+bp}{None}
+
+    \PYG{k}{def} \PYG{n+nf}{simulate\PYGZus{}step}\PYG{p}{(}\PYG{n+nb+bp}{self}\PYG{p}{):}
+        \PYG{l+s+sd}{\PYGZsq{}\PYGZsq{}\PYGZsq{}}
+\PYG{l+s+sd}{        Simulates a single simulation time step. Three events occur:}
+\PYG{l+s+sd}{        1. Virus is propagated by infected nodes.}
+\PYG{l+s+sd}{        2. Infected nodes become one step closer to recovery.}
+\PYG{l+s+sd}{        3. Newly\PYGZhy{}recovered nodes become immune.}
+
+\PYG{l+s+sd}{        If the vaccine rollout is not immediate, a fourth event occurs:}
+\PYG{l+s+sd}{        4. The number of nodes vaccinated updates according to the defined}
+\PYG{l+s+sd}{        rollout strategy.}
+\PYG{l+s+sd}{        \PYGZsq{}\PYGZsq{}\PYGZsq{}}
+        \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{propagate\PYGZus{}virus}\PYG{p}{()} \PYG{c+c1}{\PYGZsh{}handles event 3}
+        \PYG{k}{if} \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{time\PYGZus{}step} \PYG{o}{!=} \PYG{l+m+mi}{0}\PYG{p}{:}
+            \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{update\PYGZus{}infected}\PYG{p}{()} \PYG{c+c1}{\PYGZsh{}handles events 2 and 3}
+        \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{update\PYGZus{}vaccinated}\PYG{p}{()} \PYG{c+c1}{\PYGZsh{}handles event 4}
+        \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{update\PYGZus{}history}\PYG{p}{()} \PYG{c+c1}{\PYGZsh{}updates history for tracking experiment}
+        \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{time\PYGZus{}step} \PYG{o}{+=} \PYG{l+m+mi}{1}
+        \PYG{k}{return} \PYG{n+nb+bp}{None}
+
+    \PYG{k}{def} \PYG{n+nf}{calculate\PYGZus{}ever\PYGZus{}infected}\PYG{p}{(}\PYG{n+nb+bp}{self}\PYG{p}{):}
+        \PYG{l+s+sd}{\PYGZsq{}\PYGZsq{}\PYGZsq{}}
+\PYG{l+s+sd}{        Returns the total number of nodes have ever had the virus. This is}
+\PYG{l+s+sd}{        the sum of count(nodes who currently have the virus) and}
+\PYG{l+s+sd}{        count(nodes who are now immune).}
+\PYG{l+s+sd}{        \PYGZsq{}\PYGZsq{}\PYGZsq{}}
+        \PYG{n}{ever\PYGZus{}infected} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{add}\PYG{p}{(}\PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{infected}\PYG{p}{,} \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{immune}\PYG{p}{)}
+        \PYG{n}{np}\PYG{o}{.}\PYG{n}{place}\PYG{p}{(}\PYG{n}{ever\PYGZus{}infected}\PYG{p}{,} \PYG{n}{ever\PYGZus{}infected}\PYG{o}{\PYGZgt{}}\PYG{l+m+mi}{0}\PYG{p}{,} \PYG{l+m+mi}{1}\PYG{p}{)}
+        \PYG{k}{return} \PYG{n}{np}\PYG{o}{.}\PYG{n}{sum}\PYG{p}{(}\PYG{n}{ever\PYGZus{}infected}\PYG{p}{)}
+
+    \PYG{k}{def} \PYG{n+nf}{print\PYGZus{}progress}\PYG{p}{(}\PYG{n+nb+bp}{self}\PYG{p}{):}
+        \PYG{l+s+sd}{\PYGZsq{}\PYGZsq{}\PYGZsq{}}
+\PYG{l+s+sd}{        Prints interesting progress metrics for each time step.}
+\PYG{l+s+sd}{        \PYGZsq{}\PYGZsq{}\PYGZsq{}}
+        \PYG{k}{print}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}**********\PYGZsq{}}\PYG{p}{)}
+        \PYG{k}{print}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}Time step: }\PYG{l+s+si}{\PYGZpc{}d}\PYG{l+s+s1}{:\PYGZsq{}} \PYG{o}{\PYGZpc{}}\PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{time\PYGZus{}step}\PYG{p}{)}
+        \PYG{k}{print}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}Newly Infected: }\PYG{l+s+si}{\PYGZpc{}d}\PYG{l+s+s1}{\PYGZsq{}} \PYG{o}{\PYGZpc{}}\PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{newly\PYGZus{}infected}\PYG{p}{)}
+        \PYG{k}{print}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}Max Infected At Once: }\PYG{l+s+si}{\PYGZpc{}d}\PYG{l+s+s1}{\PYGZsq{}} \PYG{o}{\PYGZpc{}}\PYG{n+nb}{max}\PYG{p}{(}\PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{infected\PYGZus{}history}\PYG{p}{))}
+        \PYG{k}{print}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}Total Infected Now: }\PYG{l+s+si}{\PYGZpc{}d}\PYG{l+s+s1}{\PYGZsq{}} \PYG{o}{\PYGZpc{}}\PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{count\PYGZus{}infected}\PYG{p}{())}
+        \PYG{k}{print}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}Total Vaccinated Now: }\PYG{l+s+si}{\PYGZpc{}d}\PYG{l+s+s1}{\PYGZsq{}} \PYG{o}{\PYGZpc{}}\PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{count\PYGZus{}vaccinated}\PYG{p}{())}
+        \PYG{k}{print}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}Total Recovered/Immune Now: }\PYG{l+s+si}{\PYGZpc{}d}\PYG{l+s+s1}{\PYGZsq{}} \PYG{o}{\PYGZpc{}}\PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{count\PYGZus{}immune}\PYG{p}{())}
+
+    \PYG{k}{def} \PYG{n+nf}{run\PYGZus{}experiment}\PYG{p}{(}\PYG{n+nb+bp}{self}\PYG{p}{,} \PYG{n}{show\PYGZus{}progress}\PYG{p}{:} \PYG{n+nb}{bool} \PYG{o}{=} \PYG{n+nb+bp}{False}\PYG{p}{):}
+        \PYG{l+s+sd}{\PYGZsq{}\PYGZsq{}\PYGZsq{}}
+\PYG{l+s+sd}{        Runs an experiment. Experiment stops when either one of:}
+\PYG{l+s+sd}{            1. The entire population is infected.}
+\PYG{l+s+sd}{            2. The entire population has recovered.}
+
+\PYG{l+s+sd}{        Arguments:}
+\PYG{l+s+sd}{            show\PYGZus{}progress: If True, prints some progress metrics.}
+\PYG{l+s+sd}{        Returns:}
+\PYG{l+s+sd}{            None}
+\PYG{l+s+sd}{        \PYGZsq{}\PYGZsq{}\PYGZsq{}}
+        \PYG{k}{while} \PYG{p}{(}\PYG{l+m+mi}{0} \PYG{o}{\PYGZlt{}} \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{count\PYGZus{}infected}\PYG{p}{()} \PYG{o}{\PYGZlt{}} \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{population}\PYG{o}{*}\PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{max\PYGZus{}threshold}\PYG{p}{):}
+            \PYG{k}{if} \PYG{n}{show\PYGZus{}progress}\PYG{p}{:}
+                \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{print\PYGZus{}progress}\PYG{p}{()}
+            \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{simulate\PYGZus{}step}\PYG{p}{()}
+        \PYG{k}{if} \PYG{n}{show\PYGZus{}progress}\PYG{p}{:}
+            \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{print\PYGZus{}progress}\PYG{p}{()}
+        \PYG{k}{print}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}**********\PYGZsq{}}\PYG{p}{)}
+        \PYG{k}{return} \PYG{n+nb+bp}{None}
+
+    \PYG{k}{def} \PYG{n+nf}{save\PYGZus{}experiment\PYGZus{}results}\PYG{p}{(}\PYG{n+nb+bp}{self}\PYG{p}{):}
+        \PYG{l+s+sd}{\PYGZsq{}\PYGZsq{}\PYGZsq{}}
+\PYG{l+s+sd}{        Saves experiment history/results to a text file. The file contains six}
+\PYG{l+s+sd}{        lines, population as follows:}
+\PYG{l+s+sd}{            \PYGZhy{}population}
+\PYG{l+s+sd}{            \PYGZhy{}p\PYGZus{}adjacent}
+\PYG{l+s+sd}{            \PYGZhy{}p\PYGZus{}infect}
+\PYG{l+s+sd}{            \PYGZhy{}t\PYGZus{}recover}
+\PYG{l+s+sd}{            \PYGZhy{}max number infected in any single time step}
+\PYG{l+s+sd}{            \PYGZhy{}total number infected across the experiment}
+\PYG{l+s+sd}{            \PYGZhy{}infected\PYGZus{}history}
+\PYG{l+s+sd}{            \PYGZhy{}immune\PYGZus{}history}
+\PYG{l+s+sd}{        \PYGZsq{}\PYGZsq{}\PYGZsq{}}
+        \PYG{n}{experiment\PYGZus{}id} \PYG{o}{=} \PYG{n+nb}{str}\PYG{p}{(}\PYG{n}{datetime}\PYG{o}{.}\PYG{n}{datetime}\PYG{o}{.}\PYG{n}{now}\PYG{p}{())}\PYG{o}{.}\PYG{n}{replace}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{} \PYGZsq{}}\PYG{p}{,}\PYG{l+s+s1}{\PYGZsq{}\PYGZus{}\PYGZsq{}}\PYG{p}{)}
+        \PYG{k}{for} \PYG{n}{ch} \PYG{o+ow}{in} \PYG{p}{[}\PYG{l+s+s1}{\PYGZsq{}\PYGZhy{}\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}:\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}.\PYGZsq{}}\PYG{p}{]:}
+            \PYG{n}{experiment\PYGZus{}id} \PYG{o}{=} \PYG{n}{experiment\PYGZus{}id}\PYG{o}{.}\PYG{n}{replace}\PYG{p}{(}\PYG{n}{ch}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}\PYGZsq{}}\PYG{p}{)}
+
+        \PYG{k}{with} \PYG{n+nb}{open}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}Trials/Trial\PYGZus{}\PYGZsq{}} \PYG{o}{+} \PYG{n}{experiment\PYGZus{}id} \PYG{o}{+} \PYG{l+s+s1}{\PYGZsq{}.txt\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}w\PYGZsq{}}\PYG{p}{)} \PYG{k}{as} \PYG{n}{output}\PYG{p}{:}
+            \PYG{k}{for} \PYG{n}{param} \PYG{o+ow}{in} \PYG{p}{[}\PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{population}\PYG{p}{,}
+                        \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{p\PYGZus{}adjacent}\PYG{p}{,}
+                        \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{virus}\PYG{o}{.}\PYG{n}{p\PYGZus{}infect}\PYG{p}{,}
+                        \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{virus}\PYG{o}{.}\PYG{n}{t\PYGZus{}recover}\PYG{p}{,}
+                        \PYG{n+nb}{max}\PYG{p}{(}\PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{infected\PYGZus{}history}\PYG{p}{),}
+                        \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{calculate\PYGZus{}ever\PYGZus{}infected}\PYG{p}{()]:}
+                \PYG{n}{output}\PYG{o}{.}\PYG{n}{write}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+si}{\PYGZpc{}s}\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s+s1}{\PYGZsq{}} \PYG{o}{\PYGZpc{}}\PYG{n}{param}\PYG{p}{)}
+            \PYG{k}{for} \PYG{n}{i} \PYG{o+ow}{in} \PYG{n+nb}{range}\PYG{p}{(}\PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{time\PYGZus{}step}\PYG{p}{):}
+                \PYG{n}{output}\PYG{o}{.}\PYG{n}{write}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+si}{\PYGZpc{}s}\PYG{l+s+s1}{ \PYGZsq{}} \PYG{o}{\PYGZpc{}}\PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{infected\PYGZus{}history}\PYG{p}{[}\PYG{n}{i}\PYG{p}{])}
+            \PYG{n}{output}\PYG{o}{.}\PYG{n}{write}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{)}
+            \PYG{k}{for} \PYG{n}{i} \PYG{o+ow}{in} \PYG{n+nb}{range}\PYG{p}{(}\PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{time\PYGZus{}step}\PYG{p}{):}
+                \PYG{n}{output}\PYG{o}{.}\PYG{n}{write}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+si}{\PYGZpc{}s}\PYG{l+s+s1}{ \PYGZsq{}} \PYG{o}{\PYGZpc{}}\PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{immune\PYGZus{}history}\PYG{p}{[}\PYG{n}{i}\PYG{p}{])}
+
+        \PYG{n}{output}\PYG{o}{.}\PYG{n}{close}\PYG{p}{()}
+        \PYG{k}{return} \PYG{n+nb+bp}{None}
+\end{Verbatim}

@@ -1,0 +1,31 @@
+\begin{Verbatim}[commandchars=\\\{\},codes={\catcode`\$=3\catcode`\^=7\catcode`\_=8}]
+\PYG{k}{class} \PYG{n+nc}{Virus}\PYG{p}{():}
+    \PYG{k}{def} \PYG{n+nf+fm}{\PYGZus{}\PYGZus{}init\PYGZus{}\PYGZus{}}\PYG{p}{(}\PYG{n+nb+bp}{self}\PYG{p}{,}
+                \PYG{n}{p\PYGZus{}infect}\PYG{p}{:} \PYG{n+nb}{float} \PYG{o}{=} \PYG{l+m+mf}{0.1}\PYG{p}{,}
+                \PYG{n}{t\PYGZus{}recover}\PYG{p}{:} \PYG{n+nb}{float} \PYG{o}{=} \PYG{l+m+mi}{1}\PYG{p}{):}
+        \PYG{l+s+sd}{\PYGZsq{}\PYGZsq{}\PYGZsq{}}
+\PYG{l+s+sd}{        Constructor for the Virus class.}
+
+\PYG{l+s+sd}{        Arguments:}
+\PYG{l+s+sd}{            p\PYGZus{}infect: probability that an infected person will infect their}
+\PYG{l+s+sd}{                partner during an encounter.}
+\PYG{l+s+sd}{            t\PYGZus{}recover: the average number of time steps it takes for an infected}
+\PYG{l+s+sd}{                individual to recover from an infection.}
+\PYG{l+s+sd}{        Raises:}
+\PYG{l+s+sd}{            ValueError: if p\PYGZus{}infect is not in [0,1]}
+\PYG{l+s+sd}{            ValueError: if t\PYGZus{}recover is not in [0,inf)}
+\PYG{l+s+sd}{        \PYGZsq{}\PYGZsq{}\PYGZsq{}}
+        \PYG{k}{if} \PYG{l+m+mi}{0}\PYG{o}{\PYGZlt{}=}\PYG{n}{p\PYGZus{}infect}\PYG{o}{\PYGZlt{}=}\PYG{l+m+mi}{1}\PYG{p}{:}
+            \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{p\PYGZus{}infect} \PYG{o}{=} \PYG{n}{p\PYGZus{}infect}
+        \PYG{k}{else}\PYG{p}{:}
+            \PYG{k}{raise} \PYG{n+ne}{ValueError}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}p\PYGZus{}infect must be between 0 and 1.\PYGZsq{}}\PYG{p}{)}
+
+        \PYG{k}{if} \PYG{l+m+mi}{0}\PYG{o}{\PYGZlt{}=}\PYG{n}{t\PYGZus{}recover}\PYG{p}{:}
+            \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{t\PYGZus{}recover} \PYG{o}{=} \PYG{n}{t\PYGZus{}recover}
+        \PYG{k}{else}\PYG{p}{:}
+            \PYG{k}{raise} \PYG{n+ne}{ValueError}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}t\PYGZus{}recover must be at least 0.\PYGZsq{}}\PYG{p}{)}
+
+        \PYG{c+c1}{\PYGZsh{}p\PYGZus{}recover is the parameter estimate of a geometric random variable}
+        \PYG{c+c1}{\PYGZsh{}with E[Geo(p)]=t\PYGZus{}recover}
+        \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{p\PYGZus{}recover} \PYG{o}{=} \PYG{l+m+mf}{1.0}\PYG{o}{/}\PYG{n}{t\PYGZus{}recover}
+\end{Verbatim}

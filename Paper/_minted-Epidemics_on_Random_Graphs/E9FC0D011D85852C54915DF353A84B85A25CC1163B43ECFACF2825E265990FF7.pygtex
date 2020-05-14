@@ -1,0 +1,29 @@
+\begin{Verbatim}[commandchars=\\\{\},codes={\catcode`\$=3\catcode`\^=7\catcode`\_=8}]
+\PYG{k}{def} \PYG{n+nf}{estimate\PYGZus{}I}\PYG{p}{(}\PYG{n}{t}\PYG{p}{:} \PYG{n+nb}{int}\PYG{p}{,}
+                \PYG{n}{n}\PYG{p}{:} \PYG{n+nb}{int}\PYG{p}{,}
+                \PYG{n}{p\PYGZus{}adj}\PYG{p}{:} \PYG{n+nb}{float}\PYG{p}{,}
+                \PYG{n}{p\PYGZus{}inf}\PYG{p}{:} \PYG{n+nb}{float}\PYG{p}{,}
+                \PYG{n}{t\PYGZus{}rec}\PYG{p}{:} \PYG{n+nb}{int}\PYG{p}{)} \PYG{o}{\PYGZhy{}\PYGZgt{}} \PYG{n+nb}{int}\PYG{p}{:}
+    \PYG{l+s+sd}{\PYGZsq{}\PYGZsq{}\PYGZsq{}}
+\PYG{l+s+sd}{    Recursively calculates the number of infected individuals}
+\PYG{l+s+sd}{    in a random graph SIR model.}
+
+\PYG{l+s+sd}{    Arguments}
+\PYG{l+s+sd}{    	t: the time step.}
+\PYG{l+s+sd}{    	n: the number of nodes to simulate.}
+\PYG{l+s+sd}{    	p\PYGZus{}adj: the probability of two nodes being connected.}
+\PYG{l+s+sd}{    	p\PYGZus{}inf: probability that an infected person will infect}
+\PYG{l+s+sd}{                each of their connections during a time step.}
+\PYG{l+s+sd}{    	t\PYGZus{}rec: the number of time steps it takes for an infected}
+\PYG{l+s+sd}{                individual to recover from an infection.}
+\PYG{l+s+sd}{    \PYGZsq{}\PYGZsq{}\PYGZsq{}}
+    \PYG{k}{if} \PYG{n}{t} \PYG{o}{==} \PYG{l+m+mi}{0}\PYG{p}{:}
+        \PYG{k}{return} \PYG{l+m+mi}{1}
+
+    \PYG{n}{estimate} \PYG{o}{=} \PYG{n}{estimate\PYGZus{}I}\PYG{p}{(}\PYG{n}{t}\PYG{o}{\PYGZhy{}}\PYG{l+m+mi}{1}\PYG{p}{,}\PYG{n}{n}\PYG{p}{,}\PYG{n}{p\PYGZus{}adj}\PYG{p}{,}\PYG{n}{p\PYGZus{}inf}\PYG{p}{,}\PYG{n}{t\PYGZus{}rec}\PYG{p}{)}\PYGZbs{}
+                \PYG{o}{*}\PYG{p}{(}\PYG{l+m+mi}{1}\PYG{o}{+}\PYG{p}{(}\PYG{n}{n}\PYG{o}{\PYGZhy{}}\PYG{n}{estimate\PYGZus{}I}\PYG{p}{(}\PYG{n}{t}\PYG{o}{\PYGZhy{}}\PYG{l+m+mi}{1}\PYG{p}{,}\PYG{n}{n}\PYG{p}{,}\PYG{n}{p\PYGZus{}adj}\PYG{p}{,}\PYG{n}{p\PYGZus{}inf}\PYG{p}{,}\PYG{n}{t\PYGZus{}rec}\PYG{p}{)}\PYGZbs{}
+                         \PYG{o}{\PYGZhy{}}\PYG{n}{estimate\PYGZus{}R}\PYG{p}{(}\PYG{n}{t}\PYG{o}{\PYGZhy{}}\PYG{l+m+mi}{1}\PYG{p}{,}\PYG{n}{n}\PYG{p}{,}\PYG{n}{p\PYGZus{}adj}\PYG{p}{,}\PYG{n}{p\PYGZus{}inf}\PYG{p}{,}\PYG{n}{t\PYGZus{}rec}\PYG{p}{))}\PYGZbs{}
+                         	\PYG{o}{*}\PYG{n}{p\PYGZus{}adj}\PYG{o}{*}\PYG{n}{p\PYGZus{}inf}\PYGZbs{}
+                  \PYG{o}{\PYGZhy{}} \PYG{l+m+mf}{1.0}\PYG{o}{/}\PYG{n}{t\PYGZus{}rec}\PYG{p}{)}
+    \PYG{k}{return} \PYG{n+nb}{max}\PYG{p}{(}\PYG{n}{estimate}\PYG{p}{,} \PYG{l+m+mi}{0}\PYG{p}{)}
+\end{Verbatim}

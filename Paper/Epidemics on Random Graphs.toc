@@ -1,0 +1,14 @@
+\contentsline {section}{\tocsection {}{1}{Problem Setup and Exposition}}{1}{section.1}%
+\contentsline {section}{\tocsection {}{2}{Modeling Recovery}}{2}{section.2}%
+\contentsline {section}{\tocsection {}{3}{Calculating Basic Reproduction Number}}{2}{section.3}%
+\contentsline {section}{\tocsection {}{4}{A Random Graph SIS Model}}{3}{section.4}%
+\contentsline {section}{\tocsection {}{5}{A Random Graph SIR Model}}{4}{section.5}%
+\contentsline {section}{\tocsection {}{6}{Vaccinations in the Random Graph SIR Model}}{5}{section.6}%
+\contentsline {section}{\tocsection {}{7}{Vaccination Rollout Strategy in the Random Graph SIR Model}}{6}{section.7}%
+\contentsline {section}{\tocsection {}{8}{Concluding Remarks}}{7}{section.8}%
+\contentsline {section}{\tocsection {}{9}{Supplemental: Sample Code for $estimate\_I$}}{8}{section.9}%
+\contentsline {section}{\tocsection {}{10}{Supplemental: Sample Code for $estimate\_R$}}{9}{section.10}%
+\contentsline {section}{\tocsection {}{11}{Supplemental: Sample Code for the Virus Class}}{10}{section.11}%
+\contentsline {section}{\tocsection {}{12}{Supplemental: Sample Code for the Vaccine Class}}{11}{section.12}%
+\contentsline {section}{\tocsection {}{13}{Supplemental: Sample Code for the Experiment Class}}{13}{section.13}%
+\contentsline {section}{\tocsection {}{14}{Supplemental: Sample Code for \textit {estimate\_alpha}}}{20}{section.14}%

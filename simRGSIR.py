@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 from RG_SIR.experiment import Experiment
 from RG_SIR.virus import Virus
 from RG_SIR.vaccine import Vaccine

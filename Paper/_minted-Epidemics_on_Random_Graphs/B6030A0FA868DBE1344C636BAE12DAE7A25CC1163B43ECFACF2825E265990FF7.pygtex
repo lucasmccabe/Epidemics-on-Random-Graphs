@@ -1,0 +1,74 @@
+\begin{Verbatim}[commandchars=\\\{\},codes={\catcode`\$=3\catcode`\^=7\catcode`\_=8}]
+\PYG{l+s+sa}{r}\PYG{l+s+sd}{\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+\PYG{l+s+sd}{Sample script exhibiting a binary search and simulation for estimating the}
+\PYG{l+s+sd}{endemic steady state\PYGZhy{}inducing lower bound for alpha (rollout rate).}
+
+\PYG{l+s+sd}{Intended for demonstration purposes only. Simply run the script directly from}
+\PYG{l+s+sd}{the command line.}
+
+\PYG{l+s+sd}{Example Usage:}
+\PYG{l+s+sd}{\PYGZgt{}\PYGZgt{}\PYGZgt{} python estimate\PYGZus{}alpha.py}
+\PYG{l+s+sd}{**********}
+\PYG{l+s+sd}{Simulated outbreak with alpha = 0.500000}
+\PYG{l+s+sd}{**********}
+\PYG{l+s+sd}{Simulated outbreak with alpha = 0.750000}
+\PYG{l+s+sd}{**********}
+\PYG{l+s+sd}{Simulated outbreak with alpha = 0.625000}
+\PYG{l+s+sd}{**********}
+\PYG{l+s+sd}{Simulated outbreak with alpha = 0.562500}
+\PYG{l+s+sd}{**********}
+\PYG{l+s+sd}{Simulated outbreak with alpha = 0.531250}
+\PYG{l+s+sd}{**********}
+\PYG{l+s+sd}{Simulated outbreak with alpha = 0.546875}
+\PYG{l+s+sd}{**********}
+\PYG{l+s+sd}{Simulated outbreak with alpha = 0.554688}
+\PYG{l+s+sd}{Estimated endemic steady state lower bound for alpha: 0.554688.}
+\PYG{l+s+sd}{\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+
+\PYG{k+kn}{from} \PYG{n+nn}{RG\PYGZus{}SIR.experiment} \PYG{k+kn}{import} \PYG{n}{Experiment}
+\PYG{k+kn}{from} \PYG{n+nn}{RG\PYGZus{}SIR.virus} \PYG{k+kn}{import} \PYG{n}{Virus}
+\PYG{k+kn}{from} \PYG{n+nn}{RG\PYGZus{}SIR.vaccine} \PYG{k+kn}{import} \PYG{n}{Vaccine}
+
+\PYG{c+c1}{\PYGZsh{}ADJUST PARAMS HERE\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}}
+\PYG{n}{population} \PYG{o}{=} \PYG{l+m+mi}{2000}
+\PYG{n}{p\PYGZus{}adjacent} \PYG{o}{=} \PYG{l+m+mf}{0.1}
+\PYG{n}{p\PYGZus{}infect} \PYG{o}{=} \PYG{l+m+mf}{0.35}
+\PYG{n}{t\PYGZus{}recover} \PYG{o}{=} \PYG{l+m+mi}{4}
+\PYG{n}{effectiveness} \PYG{o}{=} \PYG{l+m+mf}{0.65}
+\PYG{n}{rollout} \PYG{o}{=} \PYG{l+s+s1}{\PYGZsq{}linear\PYGZsq{}}
+\PYG{n}{prevalence} \PYG{o}{=} \PYG{l+m+mi}{0}
+\PYG{n}{delay} \PYG{o}{=} \PYG{l+m+mi}{1}
+
+\PYG{n}{stop\PYGZus{}within} \PYG{o}{=} \PYG{l+m+mf}{0.01}
+\PYG{c+c1}{\PYGZsh{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}}
+
+\PYG{n}{alpha\PYGZus{}high} \PYG{o}{=} \PYG{l+m+mf}{1.0}
+\PYG{n}{alpha\PYGZus{}low} \PYG{o}{=} \PYG{l+m+mf}{0.0}
+
+\PYG{k}{while} \PYG{p}{(}\PYG{n+nb}{abs}\PYG{p}{(}\PYG{n}{alpha\PYGZus{}high}\PYG{o}{\PYGZhy{}}\PYG{n}{alpha\PYGZus{}low}\PYG{p}{)} \PYG{o}{\PYGZgt{}=} \PYG{n}{stop\PYGZus{}within}\PYG{p}{):}
+    \PYG{n}{alpha} \PYG{o}{=} \PYG{p}{(}\PYG{n}{alpha\PYGZus{}high}\PYG{o}{+}\PYG{n}{alpha\PYGZus{}low}\PYG{p}{)}\PYG{o}{/}\PYG{l+m+mi}{2}
+
+    \PYG{n}{experiment} \PYG{o}{=} \PYG{n}{Experiment}\PYG{p}{(}\PYG{n}{population} \PYG{o}{=} \PYG{n}{population}\PYG{p}{,}
+                            \PYG{n}{p\PYGZus{}adjacent} \PYG{o}{=} \PYG{n}{p\PYGZus{}adjacent}\PYG{p}{,}
+                            \PYG{n}{virus} \PYG{o}{=} \PYG{n}{Virus}\PYG{p}{(}\PYG{n}{p\PYGZus{}infect}\PYG{o}{=}\PYG{n}{p\PYGZus{}infect}\PYG{p}{,}
+                                        \PYG{n}{t\PYGZus{}recover} \PYG{o}{=} \PYG{n}{t\PYGZus{}recover}\PYG{p}{),}
+                            \PYG{n}{vaccine} \PYG{o}{=} \PYG{n}{Vaccine}\PYG{p}{(}\PYG{n}{effectiveness} \PYG{o}{=} \PYG{n}{effectiveness}\PYG{p}{,}
+                                        \PYG{n}{rollout} \PYG{o}{=} \PYG{n}{rollout}\PYG{p}{,}
+                                        \PYG{n}{prevalence} \PYG{o}{=} \PYG{n}{prevalence}\PYG{p}{,}
+                                        \PYG{n}{delay} \PYG{o}{=} \PYG{n}{delay}\PYG{p}{,}
+                                        \PYG{n}{rate} \PYG{o}{=} \PYG{n}{alpha}\PYG{p}{)}
+                            \PYG{p}{)}
+
+    \PYG{n}{experiment}\PYG{o}{.}\PYG{n}{run\PYGZus{}experiment}\PYG{p}{(}\PYG{n}{show\PYGZus{}progress} \PYG{o}{=} \PYG{n+nb+bp}{False}\PYG{p}{)}
+
+    \PYG{k}{print}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}Simulated outbreak with alpha = }\PYG{l+s+si}{\PYGZpc{}f}\PYG{l+s+s1}{\PYGZsq{}} \PYG{o}{\PYGZpc{}}\PYG{n}{alpha}\PYG{p}{)}
+    \PYG{c+c1}{\PYGZsh{}print(max(experiment.infected\PYGZus{}history))}
+
+    \PYG{k}{if} \PYG{n+nb}{max}\PYG{p}{(}\PYG{n}{experiment}\PYG{o}{.}\PYG{n}{infected\PYGZus{}history}\PYG{p}{)} \PYG{o}{\PYGZlt{}} \PYG{p}{(}\PYG{l+m+mi}{1} \PYG{o}{\PYGZhy{}} \PYG{p}{(}\PYG{l+m+mi}{1}\PYG{o}{/}\PYG{n}{t\PYGZus{}recover}\PYG{p}{))}\PYG{o}{*}\PYG{l+m+mf}{0.925}\PYG{o}{*}\PYG{n}{population}\PYG{p}{:}
+        \PYG{n}{alpha\PYGZus{}high} \PYG{o}{=} \PYG{n}{alpha}
+    \PYG{k}{else}\PYG{p}{:}
+        \PYG{n}{alpha\PYGZus{}low} \PYG{o}{=} \PYG{n}{alpha}
+
+
+\PYG{k}{print}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}Estimated endemic steady state lower bound for alpha: }\PYG{l+s+si}{\PYGZpc{}f}\PYG{l+s+s1}{.\PYGZsq{}} \PYG{o}{\PYGZpc{}}\PYG{n}{alpha}\PYG{p}{)}
+\end{Verbatim}

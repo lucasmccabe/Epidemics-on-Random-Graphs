@@ -14,7 +14,7 @@ The code here aims at simulating an [SIR](https://en.wikipedia.org/wiki/Compartm
 ## General Info
 We model a simple social network with a classical random graph G(n, p_adj), consisting of n nodes, whereby any two nodes are connected with probability p_adj. One randomly-selected node is infected with a virus V(p_inf, tau), becoming Patient Zero. During a time step, each infected node spreads the virus to each of its connected nodes with probability p_inf.  The expected number of time steps for a node to recover from infection is tau. For mathematical convenience, we ignore vital dynamics and assume that there are no births or deaths in the network.
 
-For more information, please read the corresponding paper [**Contagion on Classical Random Graphs**](https://github.com/lucasmccabe/Contagion-on-Random-Graphs/blob/master/Epidemics%20on%20Random%20Graphs.pdf).
+For more information, please read the corresponding paper [**Contagion on Classical Random Graphs**](https://github.com/lucasmccabe/Epidemics-on-Random-Graphs/blob/master/Contagion%20on%20Random%20Graphs.pdf).
 
 ## Usage
 

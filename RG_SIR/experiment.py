@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import numpy as np
 import random
 import datetime
@@ -50,7 +48,7 @@ class Experiment():
                 their connections during a time step.
                 For clarity, the expected number of nodes and infected node v
                 will infect in a given time step is given by p_infect*degree(v).
-            t_recover: the average number of time steps it takes for an infected
+            t_recover: the number of time steps it takes for an infected
                 individual to recover from an infection.
             max_threshold: the simulation halts if at least this fraction of
                 the population becomes infected.

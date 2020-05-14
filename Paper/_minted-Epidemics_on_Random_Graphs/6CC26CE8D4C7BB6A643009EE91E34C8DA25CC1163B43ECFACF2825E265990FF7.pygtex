@@ -1,0 +1,51 @@
+\begin{Verbatim}[commandchars=\\\{\},codes={\catcode`\$=3\catcode`\^=7\catcode`\_=8}]
+\PYG{k}{class} \PYG{n+nc}{Vaccine}\PYG{p}{():}
+    \PYG{k}{def} \PYG{n+nf+fm}{\PYGZus{}\PYGZus{}init\PYGZus{}\PYGZus{}}\PYG{p}{(}\PYG{n+nb+bp}{self}\PYG{p}{,}
+                \PYG{n}{effectiveness}\PYG{p}{:} \PYG{n+nb}{float} \PYG{o}{=} \PYG{l+m+mf}{0.5}\PYG{p}{,}
+                \PYG{n}{rollout}\PYG{p}{:} \PYG{n+nb}{str} \PYG{o}{=} \PYG{l+s+s1}{\PYGZsq{}immediate\PYGZsq{}}\PYG{p}{,}
+                \PYG{n}{prevalence}\PYG{p}{:} \PYG{n+nb}{float} \PYG{o}{=} \PYG{l+m+mi}{0}\PYG{p}{,}
+                \PYG{n}{delay}\PYG{p}{:} \PYG{n+nb}{float} \PYG{o}{=} \PYG{l+m+mi}{0}\PYG{p}{,}
+                \PYG{n}{rate}\PYG{p}{:} \PYG{n+nb}{float} \PYG{o}{=} \PYG{l+m+mi}{0}\PYG{p}{):}
+        \PYG{l+s+sd}{\PYGZsq{}\PYGZsq{}\PYGZsq{}}
+\PYG{l+s+sd}{        Constructor for the Vaccine class.}
+
+\PYG{l+s+sd}{        Arguments:}
+\PYG{l+s+sd}{            effectiveness: Vaccine effectiveness. Describes fraction of}
+\PYG{l+s+sd}{                potential transmissions that are avoided thanks to the vaccine.}
+\PYG{l+s+sd}{            rollout: Describes rollout. Two varieties are currently supported:}
+\PYG{l+s+sd}{                \PYGZsq{}immediate\PYGZsq{} \PYGZhy{} After delay, vaccine immediately has specified}
+\PYG{l+s+sd}{                    prevalence.}
+\PYG{l+s+sd}{                \PYGZsq{}linear\PYGZsq{} \PYGZhy{} Linear rollout occurs with specified rate.}
+\PYG{l+s+sd}{            prevalence: Fraction of nodes who have the vaccine. If rollout is}
+\PYG{l+s+sd}{                linear, this varies.}
+\PYG{l+s+sd}{            delay: Number of time steps before rollout begins.}
+\PYG{l+s+sd}{            rate: Rate parameter for linear rollout.}
+\PYG{l+s+sd}{        \PYGZsq{}\PYGZsq{}\PYGZsq{}}
+        \PYG{k}{if} \PYG{l+m+mi}{0}\PYG{o}{\PYGZlt{}=}\PYG{n}{effectiveness}\PYG{o}{\PYGZlt{}=}\PYG{l+m+mi}{1}\PYG{p}{:}
+            \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{effectiveness} \PYG{o}{=} \PYG{n}{effectiveness}
+        \PYG{k}{else}\PYG{p}{:}
+            \PYG{k}{raise} \PYG{n+ne}{ValueError}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}effectiveness must be between 0 and 1.\PYGZsq{}}\PYG{p}{)}
+
+        \PYG{k}{if} \PYG{n}{rollout}\PYG{o}{.}\PYG{n}{lower}\PYG{p}{()} \PYG{o+ow}{in} \PYG{p}{[}\PYG{l+s+s1}{\PYGZsq{}immediate\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}linear\PYGZsq{}}\PYG{p}{]:}
+            \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{rollout} \PYG{o}{=} \PYG{n}{rollout}\PYG{o}{.}\PYG{n}{lower}\PYG{p}{()}
+        \PYG{k}{else}\PYG{p}{:}
+            \PYG{k}{raise} \PYG{n+ne}{ValueError}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}Invalid rollout provided.\PYGZsq{}}\PYG{p}{)}
+
+        \PYG{k}{if} \PYG{l+m+mi}{0}\PYG{o}{\PYGZlt{}=}\PYG{n}{prevalence}\PYG{o}{\PYGZlt{}=}\PYG{l+m+mi}{1}\PYG{p}{:}
+            \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{prevalence} \PYG{o}{=} \PYG{n}{prevalence}
+        \PYG{k}{else}\PYG{p}{:}
+            \PYG{k}{raise} \PYG{n+ne}{ValueError}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}prevalence must be between 0 and 1.\PYGZsq{}}\PYG{p}{)}
+
+        \PYG{k}{if} \PYG{n}{delay} \PYG{o}{\PYGZgt{}=} \PYG{l+m+mi}{0} \PYG{o+ow}{and} \PYG{n+nb}{int}\PYG{p}{(}\PYG{n}{delay}\PYG{p}{)}\PYG{o}{==}\PYG{n}{delay}\PYG{p}{:}
+            \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{delay} \PYG{o}{=} \PYG{n}{delay}
+        \PYG{k}{else}\PYG{p}{:}
+            \PYG{k}{raise} \PYG{n+ne}{ValueError}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}delay must be an integer at least zero.\PYGZsq{}}\PYG{p}{)}
+
+        \PYG{k}{if} \PYG{l+m+mi}{0}\PYG{o}{\PYGZlt{}=}\PYG{n}{rate}\PYG{o}{\PYGZlt{}=}\PYG{l+m+mi}{1}\PYG{p}{:}
+            \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{rate} \PYG{o}{=} \PYG{n}{rate}
+        \PYG{k}{else}\PYG{p}{:}
+            \PYG{k}{raise} \PYG{n+ne}{ValueError}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}rate must be between 0 and 1.\PYGZsq{}}\PYG{p}{)}
+
+        \PYG{k}{if} \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{rollout} \PYG{o}{==} \PYG{l+s+s1}{\PYGZsq{}linear\PYGZsq{}} \PYG{o+ow}{and} \PYG{n}{prevalence} \PYG{o}{!=} \PYG{l+m+mi}{0}\PYG{p}{:}
+            \PYG{k}{raise} \PYG{n+ne}{ValueError}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}prevalence must start at 0 with variable rollout.\PYGZsq{}}\PYG{p}{)}
+\end{Verbatim}

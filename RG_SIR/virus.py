@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 class Virus():
     def __init__(self,
                 p_infect: float = 0.1,

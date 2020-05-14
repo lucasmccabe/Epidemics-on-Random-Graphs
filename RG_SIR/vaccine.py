@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 class Vaccine():
     def __init__(self,
                 effectiveness: float = 0.5,
